@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIHAT — Health Journal</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #f4f8f6;
+    min-height: 100vh;
+    font-family: Georgia, 'Times New Roman', serif;
+    color: #2d4a3e;
+  }
+  .header {
+    background: #ffffff;
+    border-bottom: 2px solid #b2d8cc;
+    padding: 16px 16px 0;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(60,140,110,0.07);
+  }
+  .header-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+  .header-title { font-size: 22px; color: #2a8c6e; letter-spacing: 3px; font-weight: bold; }
+  .header-sub { font-size: 11px; color: #7bbfae; letter-spacing: 2px; text-transform: uppercase; }
+  .bismillah { font-size: 12px; color: #9ecfbe; margin-bottom: 12px; }
+  .tabs { display: flex; overflow-x: auto; scrollbar-width: none; gap: 0; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    background: none; border: none; cursor: pointer;
+    padding: 8px 12px; font-size: 10px; letter-spacing: 1px;
+    text-transform: uppercase; color: #9ecfbe;
+    border-bottom: 2px solid transparent; white-space: nowrap;
+    font-family: Georgia, serif; transition: all 0.2s;
+  }
+  .tab.active { color: #2a8c6e; border-bottom-color: #2a8c6e; font-weight: bold; }
+  .tab:hover { color: #3aab87; }
+  .content { max-width: 480px; margin: 0 auto; padding: 16px 16px 60px; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .card {
+    background: #ffffff;
+    border: 1px solid #ceeae0;
+    border-radius: 14px; padding: 16px; margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(60,140,110,0.06);
+  }
+  .card-label {
+    font-size: 9px; letter-spacing: 3px; color: #7bbfae;
+    text-transform: uppercase; margin-bottom: 12px; font-weight: bold;
+  }
+  .field-label {
+    font-size: 9px; letter-spacing: 1px; color: #9ecfbe;
+    text-transform: uppercase; margin-bottom: 4px;
+  }
+  input, select {
+    background: #f4f8f6;
+    border: 1.5px solid #ceeae0;
+    border-radius: 8px; padding: 8px 10px;
+    color: #2d4a3e; font-size: 13px; width: 100%;
+    outline: none; font-family: Georgia, serif;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus { border-color: #2a8c6e; }
+  input::placeholder { color: #b2d8cc; }
+  select option { background: #ffffff; color: #2d4a3e; }
+  .btn {
+    background: linear-gradient(135deg, #2a8c6e, #3aab87);
+    border: none; border-radius: 8px; padding: 11px 16px;
+    color: #ffffff; font-size: 12px; font-weight: bold;
+    cursor: pointer; letter-spacing: 1px; width: 100%;
+    font-family: Georgia, serif; margin-top: 8px;
+    transition: opacity 0.2s; box-shadow: 0 2px 8px rgba(42,140,110,0.2);
+  }
+  .btn:hover { opacity: 0.9; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .progress-bar { background: #e8f5f0; border-radius: 6px; height: 8px; }
+  .progress-fill { background: linear-gradient(90deg, #2a8c6e, #5cc8a8); border-radius: 6px; height: 8px; transition: width 0.5s; }
+  .progress-fill.teal { background: linear-gradient(90deg, #3aab87, #5cc8a8); }
+  .progress-fill.warn { background: linear-gradient(90deg, #e09050, #f0b060); }
+  .row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid #edf6f2; }
+  .row:last-child { border-bottom: none; }
+  .green { color: #2a8c6e; }
+  .teal { color: #3aab87; }
+  .red { color: #c0392b; }
+  .amber { color: #d4821a; }
+  .muted { color: #9ecfbe; }
+  .dark { color: #2d4a3e; }
+  .small { font-size: 11px; }
+  .xsmall { font-size: 9px; }
+  .big { font-size: 30px; font-weight: bold; }
+  .stat-box {
+    padding: 10px 12px; background: #f4f8f6;
+    border-radius: 10px; display: flex; justify-content: space-around; margin-top: 12px;
+    border: 1px solid #e0f0e8;
+  }
+  .stat-item { text-align: center; }
+  .check-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; border-radius: 10px; margin-bottom: 6px;
+    cursor: pointer; border: 1.5px solid #e0f0e8;
+    background: #fafffe; transition: all 0.2s;
+    user-select: none;
+  }
+  .check-item.checked {
+    background: #edf8f3;
+    border-color: #2a8c6e;
+  }
+  .check-circle {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid #ceeae0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: #ffffff; flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .check-circle.checked { background: #2a8c6e; border-color: #2a8c6e; }
+  .meal-group { margin-bottom: 16px; }
+  .meal-title {
+    font-size: 10px; color: #2a8c6e; letter-spacing: 2px;
+    margin-bottom: 8px; text-transform: uppercase;
+    padding-bottom: 4px; border-bottom: 1px solid #e0f0e8;
+  }
+  .dot-row { display: flex; gap: 3px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #e0f0e8; }
+  .dot.filled { background: #2a8c6e; }
+  .lab-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #edf6f2; }
+  .lab-row:last-child { border-bottom: none; }
+  .flex-row { display: flex; justify-content: space-between; align-items: center; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .summary-card {
+    background: #ffffff; border: 1px solid #ceeae0;
+    border-radius: 14px; padding: 14px;
+    box-shadow: 0 2px 8px rgba(60,140,110,0.06);
+  }
+  .badge {
+    display: inline-block; padding: 3px 8px; border-radius: 20px;
+    font-size: 10px; font-weight: bold; letter-spacing: 0.5px;
+  }
+  .badge-green { background: #e0f5ec; color: #2a8c6e; }
+  .badge-amber { background: #fef3e2; color: #d4821a; }
+  .badge-red { background: #fdecea; color: #c0392b; }
+  .badge-teal { background: #e0f5f0; color: #3aab87; }
+  .badge-grey { background: #f0f0f0; color: #666; }
+  .divider { border: none; border-top: 1px solid #e0f0e8; margin: 10px 0; }
+  .notes-input { width: 100%; margin-bottom: 8px; }
+  .section-intro {
+    font-size: 11px; color: #9ecfbe; margin-bottom: 12px;
+    padding: 8px 12px; background: #edf8f3; border-radius: 8px;
+    border-left: 3px solid #2a8c6e;
+  }
+  .delete-btn {
+    background: none; border: none; color: #ceeae0;
+    cursor: pointer; font-size: 14px; padding: 2px 6px;
+    border-radius: 4px; transition: color 0.2s;
+  }
+  .delete-btn:hover { color: #c0392b; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="header-title">SIHAT</span>
+    <span class="header-sub">Health Journal</span>
+  </div>
+  <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيم</div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('dashboard', this)">◈ Dashboard</button>
+    <button class="tab" onclick="showTab('weight', this)">⊕ Weight</button>
+    <button class="tab" onclick="showTab('diet', this)">❋ Diet</button>
+    <button class="tab" onclick="showTab('exercise', this)">◎ Exercise</button>
+    <button class="tab" onclick="showTab('sleep', this)">☽ Sleep</button>
+    <button class="tab" onclick="showTab('labs', this)">⊞ Lab Results</button>
+    <button class="tab" onclick="showTab('bp', this)">♥ Blood Pressure</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="section active">
+    <div class="card">
+      <div class="card-label">WEIGHT JOURNEY</div>
+      <div class="flex-row" style="margin-bottom:12px">
+        <div><span class="big green" id="dash-weight">75</span><span class="muted" style="font-size:14px;margin-left:4px">kg</span></div>
+        <div style="text-align:right"><div class="xsmall muted">TARGET</div><div style="font-size:22px" class="teal">65 kg</div></div>
+      </div>
+      <div class="progress-bar" style="margin-bottom:8px"><div class="progress-fill" id="dash-progress" style="width:0%"></div></div>
+      <div class="flex-row small muted" style="margin-bottom:12px">
+        <span>75 kg (start)</span><span id="dash-remaining" class="dark" style="font-weight:bold"></span><span>65 kg</span>
+      </div>
+      <div class="stat-box">
+        <div class="stat-item"><div class="green" style="font-size:18px;font-weight:bold" id="dash-bmi">26.3</div><div class="xsmall muted">BMI</div></div>
+        <div class="stat-item"><div style="font-size:18px;font-weight:bold" id="dash-pct" class="teal">0%</div><div class="xsmall muted">PROGRESS</div></div>
+        <div class="stat-item"><div style="font-size:18px;font-weight:bold" id="dash-weeks" class="dark">20</div><div class="xsmall muted">WEEKS EST.</div></div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="card-label">TODAY'S DIET</div>
+        <div><span class="big green" id="dash-diet-score">0</span><span class="muted small">/12</span></div>
+        <div class="xsmall muted" style="margin-top:4px">items checked</div>
+      </div>
+      <div class="summary-card">
+        <div class="card-label">WEEKLY EXERCISE</div>
+        <div><span class="big green" id="dash-ex-mins">0</span><span class="muted small"> min</span></div>
+        <div class="xsmall muted" style="margin-top:4px">target: 150 min</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">LATEST BLOOD PRESSURE</div>
+      <div id="dash-bp-summary"><div class="muted small">No readings yet</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">LAST SLEEP</div>
+      <div id="dash-sleep-summary"><div class="muted small">No sleep logged yet</div></div>
+    </div>
+
+    <div class="card">
+      <div class="flex-row" style="margin-bottom:12px">
+        <div class="card-label">LATEST LAB RESULTS</div>
+        <div class="xsmall muted" id="dash-lab-date"></div>
+      </div>
+      <div id="dash-labs-list"></div>
+    </div>
+  </div>
+
+  <!-- WEIGHT -->
+  <div id="weight" class="section">
+    <div class="section-intro">Track your journey from 75 kg to your target of 65 kg. Log weekly for best results.</div>
+    <div class="card">
+      <div class="card-label">LOG WEIGHT</div>
+      <div class="grid2">
+        <div><div class="field-label">Date</div><input type="date" id="w-date"></div>
+        <div><div class="field-label">Weight (kg)</div><input type="number" id="w-val" placeholder="e.g. 74.5" step="0.1"></div>
+      </div>
+      <button class="btn" onclick="addWeight()">+ Add Entry</button>
+    </div>
+    <div class="card">
+      <div class="card-label">WEIGHT HISTORY</div>
+      <div id="weight-list"></div>
+    </div>
+  </div>
+
+  <!-- DIET -->
+  <div id="diet" class="section">
+    <div class="section-intro">Check off each item as you complete it. Aim for 10+ daily.</div>
+    <div class="card">
+      <div class="flex-row" style="margin-bottom:16px">
+        <div class="card-label">TODAY'S CHECKLIST</div>
+        <div class="small green" style="font-weight:bold" id="diet-score-label">0/12 ✓</div>
+      </div>
+      <div id="diet-checklist"></div>
+    </div>
+    <div class="card">
+      <div class="card-label">RECENT DAYS</div>
+      <div id="diet-history"></div>
+    </div>
+  </div>
+
+  <!-- EXERCISE -->
+  <div id="exercise" class="section">
+    <div class="section-intro">Target: 150 minutes per week. 5× treadmill at 15% incline + 2× bodyweight.</div>
+    <div class="card">
+      <div class="card-label">LOG SESSION</div>
+      <div class="grid2">
+        <div><div class="field-label">Date</div><input type="date" id="ex-date"></div>
+        <div><div class="field-label">Type</div>
+          <select id="ex-type"><option>Treadmill</option><option>Bodyweight</option><option>Both</option><option>Other</option></select>
+        </div>
+        <div><div class="field-label">Duration (min)</div><input type="number" id="ex-dur" value="30"></div>
+        <div><div class="field-label">Incline (%)</div><input type="number" id="ex-inc" value="15"></div>
+        <div><div class="field-label">Peak HR (bpm)</div><input type="number" id="ex-hr" placeholder="e.g. 153"></div>
+        <div><div class="field-label">Speed (km/h)</div><input type="number" id="ex-spd" value="4.8" step="0.1"></div>
+      </div>
+      <div><div class="field-label">Notes</div><input type="text" id="ex-notes" placeholder="Optional" class="notes-input"></div>
+      <button class="btn" onclick="addExercise()">+ Log Session</button>
+    </div>
+    <div class="card">
+      <div class="flex-row" style="margin-bottom:8px">
+        <div class="card-label">THIS WEEK</div>
+        <div class="small" id="ex-week-label"></div>
+      </div>
+      <div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" id="ex-progress" style="width:0%"></div></div>
+      <div id="exercise-list"></div>
+    </div>
+  </div>
+
+  <!-- SLEEP -->
+  <div id="sleep" class="section">
+    <div class="section-intro">Target: in bed by 10pm, wake at 4:45am for Tahajjud. Phone away before sleep Sunnah.</div>
+    <div class="card">
+      <div class="card-label">LOG SLEEP</div>
+      <div class="grid2">
+        <div><div class="field-label">Date</div><input type="date" id="sl-date"></div>
+        <div><div class="field-label">Bedtime</div><input type="time" id="sl-bed" value="22:00"></div>
+        <div><div class="field-label">Wake Time</div><input type="time" id="sl-wake" value="04:45"></div>
+        <div><div class="field-label">Quality (1–5)</div>
+          <select id="sl-qual">
+            <option value="1">★ Poor</option>
+            <option value="2">★★ Fair</option>
+            <option value="3">★★★ OK</option>
+            <option value="4" selected>★★★★ Good</option>
+            <option value="5">★★★★★ Excellent</option>
+          </select>
+        </div>
+      </div>
+      <div><div class="field-label">Tahajjud</div>
+        <select id="sl-tahajjud">
+          <option value="yes">🌙 Performed Tahajjud</option>
+          <option value="no">— Not performed</option>
+        </select>
+      </div>
+      <button class="btn" onclick="addSleep()">+ Log Sleep</button>
+    </div>
+    <div class="card">
+      <div class="card-label">SLEEP HISTORY</div>
+      <div id="sleep-list"></div>
+    </div>
+  </div>
+
+  <!-- LAB RESULTS -->
+  <div id="labs" class="section">
+    <div class="section-intro">Your May 2026 results are pre-loaded. Add new results after each checkup to track trends.</div>
+    <div class="card">
+      <div class="card-label">ADD LAB RESULTS</div>
+      <div style="margin-bottom:8px"><div class="field-label">Date</div><input type="date" id="lab-date"></div>
+      <div class="grid2" id="lab-inputs"></div>
+      <button class="btn" onclick="addLab()">+ Save Results</button>
+    </div>
+    <div class="card" id="trend-card" style="display:none">
+      <div class="card-label">TREND vs PREVIOUS CHECKUP</div>
+      <div id="trend-list"></div>
+    </div>
+    <div id="labs-history"></div>
+  </div>
+
+  <!-- BLOOD PRESSURE -->
+  <div id="bp" class="section">
+    <div class="section-intro">Log BP for both yourself and your wife. Retest after 5 minutes of rest for accuracy.</div>
+    <div class="card">
+      <div class="card-label">LOG BLOOD PRESSURE</div>
+      <div class="grid2">
+        <div><div class="field-label">Date</div><input type="date" id="bp-date"></div>
+        <div><div class="field-label">Time</div><input type="time" id="bp-time"></div>
+        <div><div class="field-label">Systolic (top)</div><input type="number" id="bp-sys" placeholder="e.g. 118"></div>
+        <div><div class="field-label">Diastolic (bottom)</div><input type="number" id="bp-dia" placeholder="e.g. 80"></div>
+        <div><div class="field-label">Pulse (bpm)</div><input type="number" id="bp-pulse" placeholder="optional"></div>
+        <div><div class="field-label">Person</div>
+          <select id="bp-person"><option value="Fauzi">Fauzi</option><option value="Wife">Wife</option></select>
+        </div>
+      </div>
+      <div><div class="field-label">Notes</div><input type="text" id="bp-notes" placeholder="e.g. after rest, after workout"></div>
+      <button class="btn" onclick="addBP()">+ Log Reading</button>
+    </div>
+    <div class="card">
+      <div class="card-label">BP HISTORY</div>
+      <div id="bp-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const LAB_TARGETS = {
+  "Total Cholesterol": { unit: "mmol/L", target: "<5.2", flag: v => v >= 5.2 },
+  "LDL":              { unit: "mmol/L", target: "<3.4", flag: v => v >= 3.4 },
+  "HDL":              { unit: "mmol/L", target: ">0.9", flag: v => v <= 0.9 },
+  "Triglycerides":    { unit: "mmol/L", target: "<2.3", flag: v => v >= 2.3 },
+  "Fasting Glucose":  { unit: "mmol/L", target: "4.0–6.0", flag: v => v < 4.0 || v > 6.0 },
+  "HbA1c":            { unit: "%",      target: "<5.7",  flag: v => v >= 5.7 },
+  "ALT (SGPT)":       { unit: "U/L",    target: "10–50", flag: v => v > 50 },
+  "GGT":              { unit: "U/L",    target: "10–71", flag: v => v > 71 },
+  "Creatinine":       { unit: "umol/L", target: "62–106",flag: v => v > 106 },
+  "eGFR":             { unit: "ml/min/1.73m²", target: "≥90", flag: v => v < 90 },
+  "Potassium":        { unit: "mmol/L", target: "3.5–5.1", flag: v => v > 5.1 },
+  "ESR":              { unit: "mm/hr",  target: "0–14",  flag: v => v > 14 },
+  "HCT":              { unit: "%",      target: "38–52", flag: v => v > 52 },
+};
+
+const DIET_ITEMS = [
+  { id:"bkf1", label:"Yogurt / Eggs + Nuts + Oats + Chia", meal:"Breakfast" },
+  { id:"bkf2", label:"Blueberries", meal:"Breakfast" },
+  { id:"bkf3", label:"Apple (with skin)", meal:"Breakfast" },
+  { id:"lun1", label:"Chicken / Cod / Salmon", meal:"Lunch" },
+  { id:"lun2", label:"Sautéed Veg + Garlic + Sesame Oil", meal:"Lunch" },
+  { id:"lun3", label:"Chickpeas", meal:"Lunch" },
+  { id:"din1", label:"Chicken / Salmon (weekend dinner)", meal:"Dinner" },
+  { id:"din2", label:"Sautéed Veg + Garlic + Sesame Oil", meal:"Dinner" },
+  { id:"din3", label:"Chickpeas", meal:"Dinner" },
+  { id:"sup1", label:"Fish Oil Supplement", meal:"Supplement" },
+  { id:"hyd1", label:"2L Water throughout day", meal:"Hydration" },
+  { id:"drk1", label:"Max 1 Morning Coffee", meal:"Drinks" },
+];
+
+function load(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } }
+function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+
+let weights    = load('sihat_weights',  [{ date:'2026-05-22', weight:75 }]);
+let dietLogs   = load('sihat_diet',     {});
+let exerciseLogs = load('sihat_exercise', []);
+let sleepLogs  = load('sihat_sleep',    []);
+let labLogs    = load('sihat_labs', [{
+  date:'2026-05-22',
+  results:{ "Total Cholesterol":6.7,"LDL":4.7,"HDL":1.4,"Triglycerides":1.2,
+    "Fasting Glucose":4.8,"HbA1c":5.4,"ALT (SGPT)":55,"GGT":117,
+    "Creatinine":107,"eGFR":76.7,"Potassium":5.6,"ESR":24,"HCT":54 }
+}]);
+let bpLogs = load('sihat_bp', [
+  { date:'2026-05-28', time:'14:00', sys:118, dia:80, pulse:'', person:'Fauzi', notes:'Post workout' }
+]);
+
+const today = new Date().toISOString().split('T')[0];
+const nowTime = new Date().toTimeString().slice(0,5);
+
+function showTab(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  renderAll();
+}
+
+function bpCat(s, d) {
+  if (s < 120 && d < 80) return { label:'Optimal',      cls:'badge-green' };
+  if (s < 130 && d < 80) return { label:'Elevated',     cls:'badge-amber' };
+  if (s < 140 || d < 90) return { label:'Stage 1 High', cls:'badge-amber' };
+  return                        { label:'Stage 2 High', cls:'badge-red'   };
+}
+
+function sleepDur(bed, wake) {
+  const bh=parseInt(bed.split(':')[0]),bm=parseInt(bed.split(':')[1]);
+  const wh=parseInt(wake.split(':')[0]),wm=parseInt(wake.split(':')[1]);
+  const t=((wh*60+wm)-(bh*60+bm)+1440)%1440;
+  return { h:Math.floor(t/60), m:t%60 };
+}
+
+function weekMins() {
+  const cut = new Date(Date.now()-7*864e5);
+  return exerciseLogs.filter(e=>new Date(e.date)>=cut).reduce((s,e)=>s+parseInt(e.dur||0),0);
+}
+
+// DASHBOARD
+function renderDashboard() {
+  const lw = weights.length ? weights[weights.length-1].weight : 75;
+  const pct = Math.min(100,Math.max(0,((75-lw)/(75-65))*100));
+  const bmi = (lw/(1.69*1.69)).toFixed(1);
+  document.getElementById('dash-weight').textContent = lw;
+  document.getElementById('dash-progress').style.width = pct+'%';
+  document.getElementById('dash-remaining').textContent = (lw-65).toFixed(1)+' kg to go';
+  document.getElementById('dash-bmi').textContent = bmi;
+  document.getElementById('dash-pct').textContent = pct.toFixed(0)+'%';
+  document.getElementById('dash-weeks').textContent = Math.ceil((lw-65)/0.5);
+
+  const td = dietLogs[today]||{};
+  const sc = DIET_ITEMS.filter(i=>td[i.id]).length;
+  const ds = document.getElementById('dash-diet-score');
+  ds.textContent = sc; ds.className = 'big '+(sc>=10?'green':sc>=6?'teal':'amber');
+
+  const wm = weekMins();
+  const em = document.getElementById('dash-ex-mins');
+  em.textContent = wm; em.className = 'big '+(wm>=150?'green':'amber');
+
+  if (labLogs.length) {
+    const lab = labLogs[labLogs.length-1];
+    document.getElementById('dash-lab-date').textContent = lab.date;
+    document.getElementById('dash-labs-list').innerHTML = Object.entries(lab.results).map(([k,v])=>{
+      const m=LAB_TARGETS[k]; const f=m?.flag(v);
+      return `<div class="lab-row">
+        <span style="font-size:12px;color:#2d4a3e">${k}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="xsmall muted">${m?.target}</span>
+          <span style="font-size:13px;font-weight:bold" class="${f?'red':'green'}">${v}</span>
+          <span class="xsmall muted">${m?.unit}</span>
+          <span class="badge ${f?'badge-red':'badge-green'}">${f?'⚠ High':'✓'}</span>
+        </div></div>`;
+    }).join('');
+  }
+
+  const myBP = [...bpLogs].filter(b=>b.person==='Fauzi').pop();
+  if (myBP) {
+    const cat = bpCat(parseInt(myBP.sys),parseInt(myBP.dia));
+    document.getElementById('dash-bp-summary').innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:26px;font-weight:bold" class="green">${myBP.sys}/${myBP.dia} <span class="xsmall muted">mmHg</span></div>
+        <div class="xsmall muted">${myBP.date} · Fauzi</div></div>
+        <span class="badge ${cat.cls}">${cat.label}</span>
+      </div>`;
+  }
+
+  if (sleepLogs.length) {
+    const sl = sleepLogs[sleepLogs.length-1];
+    const dur = sleepDur(sl.bed, sl.wake);
+    document.getElementById('dash-sleep-summary').innerHTML = `
+      <div style="display:flex;justify-content:space-around;text-align:center">
+        <div><div class="green" style="font-size:18px;font-weight:bold">${sl.bed}</div><div class="xsmall muted">BEDTIME</div></div>
+        <div><div class="teal" style="font-size:18px;font-weight:bold">${sl.wake}</div><div class="xsmall muted">WAKE</div></div>
+        <div><div style="font-size:18px;font-weight:bold;color:${dur.h>=6?'#2a8c6e':'#c0392b'}">${dur.h}h ${dur.m}m</div><div class="xsmall muted">DURATION</div></div>
+        <div><div style="font-size:14px;color:#d4af37">${'★'.repeat(parseInt(sl.qual))}</div><div class="xsmall muted">QUALITY</div></div>
+      </div>
+      ${sl.tahajjud==='yes'?'<div style="margin-top:8px;text-align:center"><span class="badge badge-teal">🌙 Tahajjud performed</span></div>':''}`;
+  }
+}
+
+// WEIGHT
+function renderWeight() {
+  document.getElementById('w-date').value = today;
+  const sorted = [...weights].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('weight-list').innerHTML = sorted.map((w,i)=>{
+    const prev = sorted[i+1];
+    const diff = prev ? (w.weight-prev.weight).toFixed(1) : null;
+    const bmi = (w.weight/(1.69*1.69)).toFixed(1);
+    return `<div class="row">
+      <div><div style="font-size:13px;color:#2d4a3e;font-weight:bold">${w.weight} kg</div>
+      <div class="xsmall muted">${w.date} · BMI ${bmi}</div></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        ${diff!==null?`<span class="small ${parseFloat(diff)<0?'green':'red'}">${parseFloat(diff)<0?'▼':'▲'} ${Math.abs(diff)} kg</span>`:'<span class="badge badge-teal">Baseline</span>'}
+        <button class="delete-btn" onclick="deleteWeight('${w.date}')">✕</button>
+      </div></div>`;
+  }).join('')||'<div class="muted small" style="padding:8px 0">No entries yet</div>';
+}
+
+function addWeight() {
+  const d=document.getElementById('w-date').value;
+  const v=parseFloat(document.getElementById('w-val').value);
+  if(!d||isNaN(v))return;
+  weights=weights.filter(w=>w.date!==d);
+  weights.push({date:d,weight:v});
+  weights.sort((a,b)=>a.date.localeCompare(b.date));
+  save('sihat_weights',weights);
+  document.getElementById('w-val').value='';
+  renderAll();
+}
+
+function deleteWeight(date) {
+  if(weights.length<=1){alert('Cannot delete the only entry.');return;}
+  if(!confirm('Delete this entry?'))return;
+  weights=weights.filter(w=>w.date!==date);
+  save('sihat_weights',weights);
+  renderAll();
+}
+
+// DIET
+function renderDiet() {
+  const td=dietLogs[today]||{};
+  const sc=DIET_ITEMS.filter(i=>td[i.id]).length;
+  document.getElementById('diet-score-label').textContent=sc+'/12 ✓';
+  const meals=[...new Set(DIET_ITEMS.map(i=>i.meal))];
+  document.getElementById('diet-checklist').innerHTML=meals.map(meal=>`
+    <div class="meal-group">
+      <div class="meal-title">${meal}</div>
+      ${DIET_ITEMS.filter(i=>i.meal===meal).map(item=>`
+        <div class="check-item ${td[item.id]?'checked':''}" onclick="toggleDiet('${item.id}')">
+          <div class="check-circle ${td[item.id]?'checked':''}">${td[item.id]?'✓':''}</div>
+          <span style="font-size:13px;color:${td[item.id]?'#2d4a3e':'#9ecfbe'}">${item.label}</span>
+        </div>`).join('')}
+    </div>`).join('');
+
+  const recent=Object.entries(dietLogs).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,7);
+  document.getElementById('diet-history').innerHTML=recent.map(([date,log])=>{
+    const s=DIET_ITEMS.filter(i=>log[i.id]).length;
+    return `<div class="row">
+      <span class="small" style="color:#2d4a3e">${date}</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="dot-row">${DIET_ITEMS.map((_,i)=>`<div class="dot ${i<s?'filled':''}"></div>`).join('')}</div>
+        <span class="badge ${s>=10?'badge-green':s>=6?'badge-teal':'badge-amber'}">${s}/12</span>
+      </div></div>`;
+  }).join('')||'<div class="muted small" style="padding:8px 0">No history yet</div>';
+}
+
+function toggleDiet(id) {
+  if(!dietLogs[today])dietLogs[today]={};
+  dietLogs[today][id]=!dietLogs[today][id];
+  save('sihat_diet',dietLogs);
+  renderAll();
+}
+
+// EXERCISE
+function renderExercise() {
+  document.getElementById('ex-date').value=today;
+  const wm=weekMins();
+  document.getElementById('ex-week-label').innerHTML=`<span class="${wm>=150?'green':'amber'}" style="font-weight:bold">${wm} / 150 min</span>`;
+  const prog=document.getElementById('ex-progress');
+  prog.style.width=Math.min(100,(wm/150)*100)+'%';
+  prog.className='progress-fill '+(wm>=150?'teal':'warn');
+  const sorted=[...exerciseLogs].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,15);
+  document.getElementById('exercise-list').innerHTML=sorted.map(e=>`
+    <div class="row">
+      <div>
+        <div style="font-size:13px;font-weight:bold;color:#2d4a3e">${e.type}</div>
+        <div class="xsmall muted">${e.date}${e.spd?' · '+e.spd+' km/h':''}${e.notes?' · '+e.notes:''}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="green" style="font-size:14px;font-weight:bold">${e.dur} min</div>
+        <div class="xsmall muted">${parseInt(e.inc)>0?e.inc+'% incline':'flat'}${e.hr?' · ❤ '+e.hr+' bpm':''}</div>
+      </div>
+    </div>`).join('')||'<div class="muted small" style="padding:8px 0">No sessions yet</div>';
+}
+
+function addExercise() {
+  const e={
+    date:document.getElementById('ex-date').value,
+    type:document.getElementById('ex-type').value,
+    dur:document.getElementById('ex-dur').value,
+    inc:document.getElementById('ex-inc').value,
+    hr:document.getElementById('ex-hr').value,
+    spd:document.getElementById('ex-spd').value,
+    notes:document.getElementById('ex-notes').value,
+    id:Date.now()
+  };
+  if(!e.date||!e.dur)return;
+  exerciseLogs.push(e);
+  save('sihat_exercise',exerciseLogs);
+  document.getElementById('ex-notes').value='';
+  document.getElementById('ex-hr').value='';
+  renderAll();
+}
+
+// SLEEP
+function renderSleep() {
+  document.getElementById('sl-date').value=today;
+  const sorted=[...sleepLogs].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,14);
+  document.getElementById('sleep-list').innerHTML=sorted.map(s=>{
+    const dur=sleepDur(s.bed,s.wake);
+    const onTime=parseInt(s.bed.split(':')[0])<=22;
+    return `<div class="row">
+      <div>
+        <div style="font-size:13px;font-weight:bold;color:#2d4a3e">${s.bed} → ${s.wake}</div>
+        <div class="xsmall muted">${s.date}</div>
+        ${s.tahajjud==='yes'?'<div class="xsmall teal">🌙 Tahajjud</div>':''}
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:14px;font-weight:bold;color:${dur.h>=6?'#2a8c6e':'#c0392b'}">${dur.h}h ${dur.m}m</div>
+        <div style="font-size:12px;color:#d4af37">${'★'.repeat(parseInt(s.qual))}</div>
+        <div class="xsmall"><span class="badge ${onTime?'badge-green':'badge-red'}">${onTime?'On time':'Late'}</span></div>
+      </div></div>`;
+  }).join('')||'<div class="muted small" style="padding:8px 0">No sleep logged yet</div>';
+}
+
+function addSleep() {
+  const e={
+    date:document.getElementById('sl-date').value,
+    bed:document.getElementById('sl-bed').value,
+    wake:document.getElementById('sl-wake').value,
+    qual:document.getElementById('sl-qual').value,
+    tahajjud:document.getElementById('sl-tahajjud').value
+  };
+  if(!e.date)return;
+  sleepLogs=sleepLogs.filter(s=>s.date!==e.date);
+  sleepLogs.push(e);
+  sleepLogs.sort((a,b)=>a.date.localeCompare(b.date));
+  save('sihat_sleep',sleepLogs);
+  renderAll();
+}
+
+// LABS
+function renderLabs() {
+  document.getElementById('lab-date').value=today;
+  document.getElementById('lab-inputs').innerHTML=Object.entries(LAB_TARGETS).map(([k,m])=>
+    `<div><div class="field-label">${k} (${m.unit})</div>
+    <input type="number" id="lab_${k.replace(/[^a-z0-9]/gi,'_')}" placeholder="${m.target}" step="0.1"></div>`
+  ).join('');
+
+  if(labLogs.length>=2){
+    document.getElementById('trend-card').style.display='block';
+    const latest=labLogs[labLogs.length-1], prev=labLogs[labLogs.length-2];
+    document.getElementById('trend-list').innerHTML=Object.keys(LAB_TARGETS).map(k=>{
+      const lv=latest.results[k],pv=prev.results[k];
+      if(lv===undefined||pv===undefined)return'';
+      const diff=(lv-pv).toFixed(1);
+      const improved=parseFloat(diff)<0;
+      const flagged=LAB_TARGETS[k].flag(lv);
+      return `<div class="lab-row">
+        <div><div style="font-size:12px;color:#2d4a3e">${k}</div>
+        <div class="xsmall muted">${pv} → ${lv} ${LAB_TARGETS[k].unit}</div></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="small ${improved?'green':'red'}">${improved?'▼':'▲'} ${Math.abs(diff)}</span>
+          <span class="badge ${flagged?'badge-red':'badge-green'}">${flagged?'⚠':'✓'}</span>
+        </div></div>`;
+    }).join('');
+  }
+
+  document.getElementById('labs-history').innerHTML=[...labLogs].reverse().map(lab=>`
+    <div class="card">
+      <div class="flex-row" style="margin-bottom:12px">
+        <div class="card-label">RESULTS</div>
+        <span class="badge badge-teal">${lab.date}</span>
+      </div>
+      ${Object.entries(lab.results).map(([k,v])=>{
+        const m=LAB_TARGETS[k];const f=m?.flag(v);
+        return `<div class="lab-row">
+          <span style="font-size:12px;color:#2d4a3e">${k}</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:13px;font-weight:bold" class="${f?'red':'green'}">${v}</span>
+            <span class="xsmall muted">${m?.unit}</span>
+            <span class="badge ${f?'badge-red':'badge-green'}">${f?'⚠':'✓'}</span>
+          </div></div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function addLab() {
+  const date=document.getElementById('lab-date').value;
+  const results={};
+  Object.keys(LAB_TARGETS).forEach(k=>{
+    const el=document.getElementById('lab_'+k.replace(/[^a-z0-9]/gi,'_'));
+    if(el&&el.value!=='')results[k]=parseFloat(el.value);
+  });
+  if(!date||Object.keys(results).length===0)return;
+  labLogs=labLogs.filter(l=>l.date!==date);
+  labLogs.push({date,results});
+  labLogs.sort((a,b)=>a.date.localeCompare(b.date));
+  save('sihat_labs',labLogs);
+  renderAll();
+}
+
+// BP
+function renderBP() {
+  document.getElementById('bp-date').value=today;
+  document.getElementById('bp-time').value=nowTime;
+  const sorted=[...bpLogs].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  document.getElementById('bp-list').innerHTML=sorted.map(bp=>{
+    const cat=bpCat(parseInt(bp.sys),parseInt(bp.dia));
+    return `<div class="row">
+      <div>
+        <div style="font-size:13px;font-weight:bold;color:#2d4a3e">${bp.person}</div>
+        <div class="xsmall muted">${bp.date} ${bp.time}${bp.notes?' · '+bp.notes:''}</div>
+      </div>
+      <div style="text-align:right;display:flex;align-items:center;gap:10px">
+        <div>
+          <div style="font-size:16px;font-weight:bold" class="green">${bp.sys}/${bp.dia}</div>
+          ${bp.pulse?`<div class="xsmall muted">${bp.pulse} bpm</div>`:''}
+        </div>
+        <span class="badge ${cat.cls}">${cat.label}</span>
+      </div></div>`;
+  }).join('')||'<div class="muted small" style="padding:8px 0">No readings yet</div>';
+}
+
+function addBP() {
+  const e={
+    date:document.getElementById('bp-date').value,
+    time:document.getElementById('bp-time').value,
+    sys:parseInt(document.getElementById('bp-sys').value),
+    dia:parseInt(document.getElementById('bp-dia').value),
+    pulse:document.getElementById('bp-pulse').value,
+    person:document.getElementById('bp-person').value,
+    notes:document.getElementById('bp-notes').value
+  };
+  if(!e.date||isNaN(e.sys)||isNaN(e.dia))return;
+  bpLogs.push(e);
+  save('sihat_bp',bpLogs);
+  document.getElementById('bp-sys').value='';
+  document.getElementById('bp-dia').value='';
+  document.getElementById('bp-pulse').value='';
+  document.getElementById('bp-notes').value='';
+  renderAll();
+}
+
+function renderAll(){renderDashboard();renderWeight();renderDiet();renderExercise();renderSleep();renderLabs();renderBP();}
+renderAll();
+</script>
+</body>
+</html>
